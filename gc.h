@@ -1,4 +1,4 @@
-#include<assert.h> // To access to the assert function, which allows us to stop the program if anything uncertain happens.
+#include<assert.h> // To get access to the assert function, which allows us to stop the program if anything uncertain happens.
 
 //Defining macros
 #define MAX_STRUCTNAMESIZE 128
@@ -60,6 +60,24 @@ void print_structure_database(structure_db_t *structure_db);
 /*	Function to add new structure record to structure database	*/
 int /*return 0 on success, -1 on failure for some reason*/
 add_structure_to_structure_db(structure_db_t *struct_db, structure_db_rec_t *new_structure_record);
+
+/*Structure Registration helping APIs*/
+
+#define FIELD_INFO(structure_name, field_name, field_type, nested_structure_name) 	\
+{#field_name, FIELD_SIZE(structure_name, field_name), field_type, 			\
+OFFSETOF(structure_name, field_name), #nested_structure_name}
+
+#define REG_STRUCT(structure_db, structure_name, field_array)			\
+do{										\
+	structure_db_rec_t *rec = calloc(1, sizeof(structure_db_rec_t));	\
+	strncpy(rec->structure_name_, #structure_name, MAX_STRUCTNAMESIZE);	\
+	rec->structure_size = sizeof(structure_name);				\
+	rec->number_of_fields = sizeof(field_array)/sizeof(field_info_t);	\
+	rec->fields=field_array;						\
+	if(add_structure_to_structure_db(structure_db, rec)){			\
+		assert(0);							\
+	}									\
+}while(0);
 
 
 
