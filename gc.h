@@ -5,6 +5,7 @@
 #define MAX_FIELDNAMESIZE 128
 
 typedef struct structure_db_rec_ structure_db_rec_t;
+typedef struct object_db_rec_ object_db_rec_t;
 
 //Enumeration for data types
 typedef enum{
@@ -22,6 +23,8 @@ OBJ_STRUCT
 #define OFFSETOF(struct_name,fld_name)		(unsigned int)&(((struct_name *)0)->fld_name)
 #define FIELD_SIZE(struct_name,fld_name)		sizeof(((struct_name *)0)->fld_name)
 
+
+/*	Strucutre database definition starts here.	*/
 
 //Defining the structure that will store all the information about a field.
 typedef struct field_info_{
@@ -52,7 +55,7 @@ typedef struct structure_db_{
 
 /*	Strucutre database definition ends here.	*/
 
-/*	Printing Functions	> 			*/
+/*	Printing Functions for Structure Database	 			*/
 
 void print_structure_record(structure_db_rec_t *structure_record);
 void print_structure_database(structure_db_t *structure_db);
@@ -87,5 +90,35 @@ do{										\
 
 
 
+
+
+
+/*	Object database definition starts here.		*/
+
+struct object_db_rec_{
+	object_db_rec_t *next; //Points to the next object in the linked list.
+	void *object_ptr; //Points to the object malloced.  -> This will be used as the key.
+	unsigned int units; //Tells how many units of this particular structure object is made.
+	structure_db_rec_t *structure_rec; //Points to the structure of which this is the object.
+};
+
+typedef struct object_db_{
+	structure_db_t *structure_db;
+	object_db_rec_t *head;
+	unsigned int count;
+}object_db_t;
+
+/*	Object database definition ends here.		*/
+
+
+/*	Printing Functions for Object Database	 			*/
+void print_object_rec(object_db_rec_t *obj_rec, int i);
+void print_object_db(object_db_t *object_db);
+
+
+/*API to malloc the object*/
+//Wrote our own implementation of calloc as xcalloc -> This will return us a pointer and will take first argument as the object_db, structure_name and the third one will be the no. of units.
+void *
+xcalloc(object_db_t *object_db, char * struct_name, int units);
 
 
