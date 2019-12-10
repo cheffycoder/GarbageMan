@@ -10,7 +10,19 @@ This application is built on Linux machine, so it would be advised to use Linux.
 
 * [x] Defined structure database and registered applications structures with the garbage collector library.
 
-To test Phase1, type the following command in the terminal.
+To test Phase1, type the following commands in the terminal.
+```bash
+gcc -g -c gc.c gc.o
+gcc -g -c app.c app.o
+gcc -g -o exe gc.o app.o
+./exe
+```
+---
+**Phase 2 COMPLETE**
+
+* [x] Defined Object database. Now, application can register objects for the structures using modified calloc function (xcalloc).
+
+To test Phase2, type the following commands in the terminal.
 ```bash
 gcc -g -c gc.c gc.o
 gcc -g -c app.c app.o
