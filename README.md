@@ -29,3 +29,13 @@ gcc -g -c app.c app.o
 gcc -g -o exe gc.o app.o
 ./exe
 ```
+---
+**Phase 3 ONGOING**
+
+* [x] Define is_Root flag.
+* [x] Add function to mark objects as root.
+* [x] Modify functions to add this functionality.
+* [ ] Add is_visited flag for each object.
+* [ ] Add function to Initialize all objects as unvisited.
+* [ ] Add function to find next root object.
+* [ ] Add function to explore all the object reachable from current root object.

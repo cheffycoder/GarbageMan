@@ -19,6 +19,12 @@ DOUBLE,
 OBJ_STRUCT
 }data_type;
 
+
+typedef enum{
+    GC_FALSE,
+    GC_TRUE
+} boolean_t;
+
 //Macros 
 #define OFFSETOF(struct_name,fld_name)		(unsigned int)&(((struct_name *)0)->fld_name)
 #define FIELD_SIZE(struct_name,fld_name)		sizeof(((struct_name *)0)->fld_name)
@@ -100,6 +106,8 @@ struct object_db_rec_{
 	void *object_ptr; //Points to the object malloced.  -> This will be used as the key.
 	unsigned int units; //Tells how many units of this particular structure object is made.
 	structure_db_rec_t *structure_rec; //Points to the structure of which this is the object.
+
+    boolean_t is_root;    /*Is this object is Root object*/
 };
 
 typedef struct object_db_{
@@ -122,3 +130,12 @@ void *
 xcalloc(object_db_t *object_db, char * struct_name, int units);
 
 
+/*APIs to register root objects*/
+void 
+register_global_object_as_root(object_db_t *object_db, 
+                               void *objptr, 
+                               char *struct_name, 
+                               unsigned int units);
+
+void
+set_dynamic_object_as_root(object_db_t *object_db, void *obj_ptr);

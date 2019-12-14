@@ -100,11 +100,26 @@ print_structure_database(structure_db_t *structure_db){
 
 /*Working with objects*/
 
+static object_db_rec_t *
+object_db_look_up(object_db_t *object_db, void *ptr){
+
+    object_db_rec_t *head = object_db->head;
+    if(!head) return NULL;
+    
+    for(; head; head = head->next){
+        if(head->object_ptr == ptr)
+            return head;
+    }
+    return NULL;
+}
+
+
 static void
 add_object_to_object_db(object_db_t *object_db, 
                      void *ptr, 
                      int units,
-                     structure_db_rec_t *struct_rec){
+                     structure_db_rec_t *struct_rec,
+                     boolean_t is_root){
      
     object_db_rec_t *obj_rec = object_db_look_up(object_db, ptr);
     /*Dont add same object twice*/
@@ -116,6 +131,7 @@ add_object_to_object_db(object_db_t *object_db,
     obj_rec->object_ptr = ptr;
     obj_rec->units = units;
     obj_rec->structure_rec = struct_rec;
+    obj_rec->is_root = is_root;
 
     object_db_rec_t *head = object_db->head;
         
@@ -132,18 +148,6 @@ add_object_to_object_db(object_db_t *object_db,
 }
 
 
-static object_db_rec_t *
-object_db_look_up(object_db_t *object_db, void *ptr){
-
-    object_db_rec_t *head = object_db->head;
-    if(!head) return NULL;
-    
-    for(; head; head = head->next){
-        if(head->object_ptr == ptr)
-            return head;
-    }
-    return NULL;
-}
 
 
 void *
@@ -154,9 +158,10 @@ xcalloc(object_db_t *object_db,
     structure_db_rec_t *struct_rec = structure_db_look_up(object_db->structure_db, struct_name);
     assert(struct_rec);
     void *ptr = calloc(units, struct_rec->structure_size);
-    add_object_to_object_db(object_db, ptr, units, struct_rec);
+    add_object_to_object_db(object_db, ptr, units, struct_rec, GC_FALSE); /*xcalloc by default set the object as non-root*/
     return ptr;
 }
+
 
 
 /*Dumping Functions for Object database*/
@@ -164,10 +169,10 @@ void
 print_object_rec(object_db_rec_t *obj_rec, int i){
     
     if(!obj_rec) return;
-    printf(ANSI_COLOR_MAGENTA"|--------------------------------------------------------------------------------------------|\n");
-    printf(ANSI_COLOR_YELLOW "|%-3d ptr = %-10p | next = %-15p | units = %-4d | struct_name = %-10s |\n", 
-        i, obj_rec->object_ptr, obj_rec->next, obj_rec->units, obj_rec->structure_rec->structure_name_); 
-    printf(ANSI_COLOR_MAGENTA "|--------------------------------------------------------------------------------------------|\n");
+    printf(ANSI_COLOR_MAGENTA"|--------------------------------------------------------------------------------------------------------------|\n"ANSI_COLOR_RESET);
+    printf(ANSI_COLOR_YELLOW "|%-3d ptr = %-10p | next = %-15p | units = %-4d | struct_name = %-10s | is_root = %s |\n"ANSI_COLOR_RESET, 
+        i, obj_rec->object_ptr, obj_rec->next, obj_rec->units, obj_rec->structure_rec->structure_name_,  obj_rec->is_root ? "TRUE " : "FALSE"); 
+    printf(ANSI_COLOR_MAGENTA "|--------------------------------------------------------------------------------------------------------------|\n"ANSI_COLOR_RESET);
 }
 
 void
@@ -181,3 +186,35 @@ print_object_db(object_db_t *object_db){
     }
 }
 
+
+
+
+
+
+
+/*The global object of the application which is not created by xcalloc
+  should be registered with MLD using below API*/
+void 
+register_global_object_as_root(object_db_t *object_db,
+                          void *objptr,
+                          char *struct_name,
+                          unsigned int units){
+
+    structure_db_rec_t *struct_rec = structure_db_look_up(object_db->structure_db, struct_name);
+    assert(struct_rec);
+
+   /*Create a new object record and add to object database*/
+   add_object_to_object_db(object_db, objptr, units, struct_rec, GC_TRUE);  
+}
+
+/* Application might create an object using xcalloc , but at the same time the object
+   can be root object. Use this API to override the object flags for the object already
+   preent in object db*/
+void
+set_dynamic_object_as_root(object_db_t *object_db, void *obj_ptr){
+
+    object_db_rec_t *obj_rec = object_db_look_up(object_db, obj_ptr);
+    assert(obj_rec);
+    
+    obj_rec->is_root = GC_TRUE;
+}
