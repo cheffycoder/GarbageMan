@@ -131,6 +131,7 @@ add_object_to_object_db(object_db_t *object_db,
     obj_rec->object_ptr = ptr;
     obj_rec->units = units;
     obj_rec->structure_rec = struct_rec;
+    obj_rec->is_visited = GC_FALSE;
     obj_rec->is_root = is_root;
 
     object_db_rec_t *head = object_db->head;
@@ -217,4 +218,18 @@ set_dynamic_object_as_root(object_db_t *object_db, void *obj_ptr){
     assert(obj_rec);
     
     obj_rec->is_root = GC_TRUE;
+}
+
+
+
+
+/*  Initialize the algorithm by setting is_visited flag of all the objects as FALSE.    */
+static void
+init_algorithm(object_db_t *object_db){
+
+     object_db_rec_t *obj_rec = object_db->head;
+     while(obj_rec){
+         obj_rec->is_visited = GC_FALSE;
+         obj_rec = obj_rec->next;
+     }
 }
