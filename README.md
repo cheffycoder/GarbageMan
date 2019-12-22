@@ -37,5 +37,5 @@ gcc -g -o exe gc.o app.o
 * [x] Modify functions to add this functionality.
 * [x] Add is_visited flag for each object.
 * [x] Add function to Initialize all objects as unvisited.
-* [ ] Add function to find next root object.
-* [ ] Add function to explore all the object reachable from current root object.
+* [x] Add function to find next root object.
+* [x] Add function to explore all the object reachable from current root object.

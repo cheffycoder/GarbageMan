@@ -108,6 +108,7 @@ struct object_db_rec_{
 	structure_db_rec_t *structure_rec; //Points to the structure of which this is the object.
 
     boolean_t is_root;    /*Is this object is Root object*/
+	boolean_t is_visited; /*Used for Graph traversal*/
 };
 
 typedef struct object_db_{
@@ -139,3 +140,11 @@ register_global_object_as_root(object_db_t *object_db,
 
 void
 set_dynamic_object_as_root(object_db_t *object_db, void *obj_ptr);
+
+
+
+
+
+/*APIs for MLD Algorithm*/
+void
+run_algorithm(object_db_t *object_db);

@@ -233,3 +233,52 @@ init_algorithm(object_db_t *object_db){
          obj_rec = obj_rec->next;
      }
 }
+
+
+/*  Finds the next root node to start exploring rest of the objects attached to it.  */
+static object_db_rec_t *
+get_next_root_object(object_db_t *object_db, 
+                     object_db_rec_t *starting_from_here){
+
+    object_db_rec_t *first = starting_from_here ? starting_from_here->next : object_db->head;
+    while(first){
+        if(first->is_root)
+            return first;
+        first = first->next;
+    }
+    return NULL;
+}
+
+
+/*  We will traverse the graph starting from root objects and mark all the reachable nodes as visited.  */
+void
+run_algorithm(object_db_t *object_db){
+
+    /*Step 1 : Mark all objects in object databse as unvisited*/
+    init_algorithm(object_db);
+
+    /* Step 2 : Get the first root object from the object db, it could be 
+     * present anywhere in object db. If there are multiple roots in object db
+     * return the first one, we can start mld algorithm from any root object*/
+
+    object_db_rec_t *root_obj = get_next_root_object(object_db, NULL);
+
+    while(root_obj){
+        if(root_obj->is_visited){
+            /* It means, all objects reachable from this root_obj has already been
+             * explored, no need to do it again, else you will end up in infinite loop.
+             * Remember, Application Data structures are cyclic graphs*/
+            root_obj = get_next_root_object(object_db, root_obj);
+            continue;
+        }
+        
+        /*root objects are always reachable since application holds the global
+         * variable to it*/ 
+        root_obj->is_visited = GC_TRUE;
+        
+        /*Explore all reachable objects from this root_obj recursively*/
+        // Define later -> explore_objects_recursively();
+
+        root_obj = get_next_root_object(object_db, root_obj);
+    } 
+}
