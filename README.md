@@ -39,3 +39,5 @@ gcc -g -o exe gc.o app.o
 * [x] Add function to Initialize all objects as unvisited.
 * [x] Add function to find next root object.
 * [x] Add function to explore all the object reachable from current root object.
+* [x] Add function to explore the reachable objects from a root node.
+* [ ] Add function to Report leaked objects.

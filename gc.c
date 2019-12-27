@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "gc.h"
 #include "css.h"
 
@@ -247,6 +248,88 @@ get_next_root_object(object_db_t *object_db,
         first = first->next;
     }
     return NULL;
+}
+
+
+
+
+/* Level 2 Pseudocode : This function explore the direct childs of obj_rec and mark
+ * them visited. Note that obj_rec must have already visted.*/
+static void
+explore_objects_recursively(object_db_t *object_db, 
+                                object_db_rec_t *parent_obj_rec){
+
+    unsigned int i , n_fields;
+    char *parent_obj_ptr = NULL,
+         *child_obj_offset = NULL;
+    void *child_object_address = NULL;
+    field_info_t *field_info = NULL;
+
+    object_db_rec_t *child_object_rec = NULL;
+    structure_db_rec_t *parent_struct_rec = parent_obj_rec->structure_rec;
+
+    if(!parent_struct_rec){
+        /* Handling void pointers : We cannot explore fields of objects which are of type void * in application.
+         * Such objects will not have structure records, hence, nothing to do here*/
+        return;
+    }
+
+    /*Parent object must have already visited*/
+    assert(parent_obj_rec->is_visited);
+
+    if(parent_struct_rec->number_of_fields == 0){
+        return;
+    }
+
+    for( i = 0; i < parent_obj_rec->units; i++){
+
+        parent_obj_ptr = (char *)(parent_obj_rec->object_ptr) + (i * parent_struct_rec->structure_size);
+
+        for(n_fields = 0; n_fields < parent_struct_rec->number_of_fields; n_fields++){
+
+            field_info = &parent_struct_rec->fields[n_fields];
+
+            /*We are only concerned with fields which are pointer to
+             * other objects*/
+            switch(field_info->field_type){
+                case UINT8:
+                case UINT32:
+                case INT32:
+                case CHAR:
+                case FLOAT:
+                case DOUBLE:
+                case OBJ_STRUCT:
+                    break;
+                case OBJ_PTR:
+                default:
+                    ;
+
+                /*child_obj_offset is the memory location inside parent object
+                 * where address of next level object is stored*/
+                child_obj_offset = parent_obj_ptr + field_info->offset;
+                memcpy(&child_object_address, child_obj_offset, sizeof(void *));
+
+                /*child_object_address now stores the address of the next object in the
+                 * graph. It could be NULL, Handle that as well*/
+                if(!child_object_address) continue;
+
+                child_object_rec = object_db_look_up(object_db, child_object_address);
+
+                assert(child_object_rec);
+                /* Since we are able to reach this child object "child_object_rec" 
+                 * from parent object "parent_obj_ptr", mark this
+                 * child object as visited and explore its children recirsively. 
+                 * If this child object is already visited, then do nothing - avoid infinite loops*/
+                if(!child_object_rec->is_visited){
+                    child_object_rec->is_visited = GC_TRUE;
+                    explore_objects_recursively(object_db, child_object_rec);
+                }
+                else{
+                    continue; /*Do nothing, explore next child object*/
+                }
+            }
+        }
+    }
 }
 
 
