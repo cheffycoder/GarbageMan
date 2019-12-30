@@ -365,3 +365,70 @@ run_algorithm(object_db_t *object_db){
         root_obj = get_next_root_object(object_db, root_obj);
     } 
 }
+
+
+
+
+
+static void
+dump_object_rec_detail(object_db_rec_t *obj_rec){
+
+    int n_fields = obj_rec->structure_rec->number_of_fields;
+    field_info_t *field = NULL;
+
+    int units = obj_rec->units, obj_index = 0,
+        field_index = 0;
+
+    for(; obj_index < units; obj_index++){
+        char *current_object_ptr = (char *)(obj_rec->object_ptr) + \
+                        (obj_index * obj_rec->structure_rec->structure_size);
+
+        for(field_index = 0; field_index < n_fields; field_index++){
+            
+            field = &obj_rec->structure_rec->fields[field_index];
+
+            switch(field->field_type){
+                case UINT8:
+                case INT32:
+                case UINT32:
+                    printf("%s[%d]->%s = %d\n", obj_rec->structure_rec->structure_name_, obj_index, field->field_name, *(int *)(current_object_ptr + field->offset));
+                    break;
+                case CHAR:
+                    printf("%s[%d]->%s = %s\n", obj_rec->structure_rec->structure_name_, obj_index, field->field_name, (char *)(current_object_ptr + field->offset));
+                    break;
+                case FLOAT:
+                    printf("%s[%d]->%s = %f\n", obj_rec->structure_rec->structure_name_, obj_index, field->field_name, *(float *)(current_object_ptr + field->offset));
+                    break;
+                case DOUBLE:
+                    printf("%s[%d]->%s = %f\n", obj_rec->structure_rec->structure_name_, obj_index, field->field_name, *(double *)(current_object_ptr + field->offset));
+                    break;
+                case OBJ_PTR:
+                    printf("%s[%d]->%s = %p\n", obj_rec->structure_rec->structure_name_, obj_index, field->field_name,  (void *)*(int *)(current_object_ptr + field->offset));
+                    break;
+                case OBJ_STRUCT:
+                    /*Later*/
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+}
+
+
+void
+report_leaked_objects(object_db_t *object_db){
+
+    int i = 0;
+    object_db_rec_t *head;
+
+    printf("\n\nReporting Leaked Objects\n");
+
+    for(head = object_db->head; head; head = head->next){
+        if(!head->is_visited){
+            print_object_rec(head, i++);
+            dump_object_rec_detail(head);
+            printf("\n\n");
+        }
+    }
+}

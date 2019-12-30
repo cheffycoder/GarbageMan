@@ -148,3 +148,6 @@ set_dynamic_object_as_root(object_db_t *object_db, void *obj_ptr);
 /*APIs for MLD Algorithm*/
 void
 run_algorithm(object_db_t *object_db);
+
+void
+report_leaked_objects(object_db_t *object_db);
